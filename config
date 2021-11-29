@@ -31,13 +31,14 @@
 
 (setf *window-format* "%m%s%50t")
 
+;; Font
+(set-font "-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-*-*")
 ;;; Basic Settings
 (setf *mode-line-background-color* (car *colors*)
       *mode-line-foreground-color* (car (last *colors*))
       *mode-line-timeout* 1)
 
 (setf *message-window-gravity* :center
-      *input-window-gravity* :center
       *window-border-style* :thin
       *message-window-padding* 3
       *maxsize-border-width* 2
