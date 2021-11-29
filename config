@@ -146,7 +146,6 @@
 (define-key *root-map* (kbd "R") "iresize")
 (define-key *root-map* (kbd "f") "fullscreen")
 (define-key *root-map* (kbd "Q") "quit-confirm")
-(define-key *root-map* (kbd "q") "only")
 
 (define-key *root-map* (kbd "M-o") "fnext")
 (define-key *root-map* (kbd "SPC") "exec cabl -c")
@@ -245,7 +244,7 @@
 
 (tr-define-key "z" "toggle-slop-this")
 
-;;; Splits
+;;; Split
 (defcommand hsplit-and-focus () ()
   "create a new frame on the right and focus it."
   (hsplit)
@@ -257,15 +256,16 @@
   (move-focus :down))
 (define-key *root-map* (kbd "v") "hsplit-and-focus")
 (define-key *root-map* (kbd "s") "vsplit-and-focus")
-(loop for i in '("hsplit-and-focus"
+(loop :for i :in '("hsplit-and-focus"
                  "vsplit-and-focus")
-do (dyn-blacklist-command i))
+      :do (dyn-blacklist-command i))
 
 ;;; Mode-Line
 (load-module "battery-portable")
 
 ;; Get Fit
-(defvar *reps* 0)
+(defvar *reps* 0
+  "Variable for keeping track of reps")
 (defcommand add-reps (reps) ((:number "Enter reps: "))
   (when reps
     (setq *reps* (+ *reps* reps))))
@@ -279,16 +279,18 @@ do (dyn-blacklist-command i))
     m))
 (define-key *root-map* (kbd "ESC") '*gym-map*)
 
+(setf *time-modeline-string* "%a, %b %d %I:%M%p")
 (setf *screen-mode-line-format*
       (list
        ;; Groups
-       " ^7[^B^4%n^7^b]"
+       " ^7[^B^4%n^7^b] %v"
        ;; Pad to right
        "^>"
        '(:eval (if (> *reps* 0) (format nil "^1^B(Reps ~A)^n " *reps*)))
        ;; Date
        "^7"
-       '(:eval (run-shell-command "date +\"%a, %b %d %I:%M%p\" | tr '\\n' ' '" t))
+       "%d"
+       ;; Battery
        " ^7[^n%B^7]^n "))
 
 (defun enable-mode-line-everywhere ()
@@ -297,10 +299,7 @@ do (dyn-blacklist-command i))
 	    (enable-mode-line screen head t))))
 (enable-mode-line-everywhere)
 ;; turn on/off the mode line for the current head only.
-(define-key *root-map* (kbd "B") "mode-line")
-
-;; Font
-(set-font "-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-*-*")
+(define-key *top-map* (kbd "s-B") "mode-line")
 
 ;;; Gaps
 (load-module "swm-gaps")
@@ -358,8 +357,9 @@ running in the current group"
 
 (defun exec-el (expression)
   "execute emacs lisp do not collect it's output"
-  (run-shell-command (concat "emacsclient -e '" (write-to-string
-                                                 expression) "'") nil))
+  (run-shell-command (concat "emacsclient -e '"
+                             (write-to-string expression) "'")
+                     nil))
 
 (defun eval-string-as-el (expression)
   "evaluate a string as emacs lisp"
@@ -375,7 +375,8 @@ running in the current group"
 
 (defun better-move-focus (ogdir)
   "Similar to move-focus but also treats emacs windows as Xorg windows"
-  (let ((mv `(move-focus ,(intern (string ogdir) "KEYWORD"))))
+  (declare (type (member :up :down :left :right) ogdir))
+  (let ((mv `(move-focus ,ogdir)))
     (if (is-emacs-p (current-window))
         (when
             ;; There is not emacs window in that direction
@@ -386,8 +387,8 @@ running in the current group"
         (eval mv))))
 
 (defcommand my-mv (dir) ((:direction "Enter direction: "))
-  (when dir
-    (better-move-focus (string-upcase dir))))
+  (when dir (better-move-focus dir)))
+
 (define-key *top-map* (kbd "s-h") "my-mv left")
 (define-key *top-map* (kbd "s-j") "my-mv down")
 (define-key *top-map* (kbd "s-k") "my-mv up")
