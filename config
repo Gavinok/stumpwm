@@ -193,7 +193,8 @@ This is needed if Sly updates while StumpWM is running"
   (when windows
     (second (select-from-menu
              (group-screen (window-group (car windows)))
-             (mapcar 'window-menu-format windows)))))
+             (mapcar 'window-menu-format windows)
+             "Select Window: "))))
 
 (defun windows-in-group (group)
   (group-windows (find group (screen-groups (current-screen))
