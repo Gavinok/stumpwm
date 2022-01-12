@@ -97,7 +97,7 @@ This is needed if Sly updates while StumpWM is running"
 (run-shell-command "xsetroot -cursor_name left_ptr")
 
 ;;; Bindings
-(set-prefix-key (kbd "M-ESC"))
+(set-prefix-key (kbd "XF86Tools"))
 
 ;; General Top Level Bindings
 (define-key *top-map* (kbd "s-n") "pull-hidden-next")
