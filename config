@@ -111,7 +111,7 @@ This is needed if Sly updates while StumpWM is running"
 (tr-define-key "=" "exec menu_connection_manager.sh")
 (tr-define-key "X" "exec power_menu.sh")
 (tr-define-key "P" "exec clipmenu")
-(tr-define-key "d" "exec")
+(tr-define-key "d" "exec dmenu_run")
 (tr-define-key "RET" "exec emacsclient -c -a 'emacs'")
 
 ;; Window Movement
