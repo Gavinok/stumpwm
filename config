@@ -25,12 +25,14 @@
 (load "~/.cache/quicklisp/setup.lisp")
 ;;; SLY setup
 (ql:quickload :slynk)
+(defparameter *stumpwm-slynk-session* nil)
 (defcommand start-slynk () ()
   (handler-case
       (progn
-        (slynk:create-server
-         :dont-close t
-         :port slynk::default-server-port))
+        (defparameter *stumpwm-slynk-session*
+          (slynk:create-server
+           :dont-close t
+           :port slynk::default-server-port)))
     (error (c)
            (format *error-output* "Error starting slynk: ~a~%" c))))
 
@@ -113,6 +115,7 @@ This is needed if Sly updates while StumpWM is running"
 (tr-define-key "P" "exec clipmenu")
 (tr-define-key "d" "exec dmenu_run")
 (tr-define-key "RET" "exec emacsclient -c -a 'emacs'")
+(tr-define-key "D" "exec discord")
 
 ;; Window Movement
 (dyn-blacklist-command "move-window")
@@ -142,8 +145,11 @@ This is needed if Sly updates while StumpWM is running"
                       (write-sequence (write-to-string (+ (parse-integer (read-line fp nil)) val))
                                       fp)))
 
-(let ((bdown "brighten -1000")
-      (bup   "brighten  1000")
+(let (;; If xbacklight doesn't work use this (requires special file permissions)
+      ;; (bdown "brighten -1000")
+      ;; (bup   "brighten  1000")
+      (bdown   "exec xbacklight -dec 10")
+      (bup     "exec xbacklight -inc 10")
       (m *top-map*))
   (define-key m (kbd "s-C-s")                 bdown)
   (define-key m (kbd "XF86MonBrightnessDown") bdown)
@@ -257,8 +263,7 @@ This is needed if Sly updates while StumpWM is running"
 
 (defcommand toggle-slop-this () ()
   (let ((win    (current-window))
-        (group  (current-group))
-        (screen (current-screen)))
+        (group  (current-group)))
     (if (floatingp win)
         (progn (always-on-top-off win)
                (stumpwm::unfloat-window win group))
@@ -387,9 +392,9 @@ running in the current group"
   "evaluate a string as emacs lisp"
   (run-shell-command (concat "emacsclient -e '" expression "'") t))
 
-(defun eval-el (expression)
+(defmacro eval-el (expression)
   "evaluate emacs lisp and collect it's output"
-  (eval-string-as-el (write-to-string expression)))
+  `(eval-string-as-el (write-to-string (quote ,expression))))
 
 (defun emacs-winmove (direction)
   "executes the emacs function winmove-DIRECTION where DIRECTION is a string"
@@ -465,11 +470,11 @@ if the match is a cons cell it is assumed to be a lambda and will execute call t
   (plumber)
   (plumber "/home/gavinok/Pictures/city.png"))
 
-;; (load-module "notify")
-;; (when *initializing*
-;;   (notify:notify-server-toggle))
-
-
+(defcommand connect-to-sly () ()
+  (unless *stumpwm-slynk-session*
+    (start-slynk))
+  (exec-el '(sly-connect "localhost" "4005"))
+  (emacs))
 ;; (setf notify:*notify-server-title-color* "^6")
 ;; (setf notify:*notify-server-body-color* "^7")
 
